@@ -1,0 +1,91 @@
+function locate
+stalng=[414940,385422,393217,400846,404426,410431,413554,404100,401628,413430,...
+411615,414013,423030,424239,420414,413430,414940,385422,413430,404100,410618,...
+400846,420309,411611,421600,404943,420414,413430,393152,394333,384850,405034,...
+420104,404426,395400,410431,411333];
+stalat=[1233441,1213742,1211623,1242327,1244651,1210820,1214541,1223609,1231534,...
+    1202912,1234647,1242439,1232349,1241913,1225204,1232440,1233441,1213742,...
+    1202912,1223609,1230045,1242327,1213555,1231709,1235446,1195237,1225204,...
+    1232440,1225839,1225806,1211351,1224856,1251903,1244651,1233536,1210820,1192538];
+stalng=floor(stalng./10000)+mod(floor(stalng./100),100)/60+mod(stalng,100)/3600;
+stalat=floor(stalat./10000)+mod(floor(stalat./100),100)/60+mod(stalat,100)/3600;
+tt=stalat;
+stalat=stalng;
+stalng=tt;
+stax=111.199*(stalat-stalat(1)).*cos((stalng+stalng(1))/2);
+stay=111.199*(stalat-stalat(1));
+stax=stax([3,5,6,7,8,9,12,17,22,27]);
+stay=stay([3,5,6,7,8,9,12,17,22,27]);
+[x,y,z,t]=deal(111.199*(40-stalat(1))*cos((120+stalng(1))/2),111.199*(40-stalat(1)),...
+    15,0);
+testdata=dlmread('/Users/siqilu/Desktop/datainput/testinput.txt');
+to=testdata(:,1:20);
+rightans=testdata(:,21:24);
+maxiter=800;
+for j=1:1000
+    for i=1:maxiter
+        [newx,newy,newz,newt]=giegersolve(x,y,z,t,to(j,:),stax,stay);
+        if max(abs([newx,newy,newz,newt]-[x,y,z,t]))<0.1 
+            break
+        end
+        [x,y,z,t]=deal(newx,newy,newz,newt);
+    end
+    ansx(j)=newx;
+    ansy(j)=newy;
+    ansz(j)=newz;
+    anst(j)=newt;
+    [x,y,z,t]=deal(111.199*(40-stalat(1))*cos((120+stalng(1))/2),111.199*(40-stalat(1)),...
+    15,0);
+end
+deltax=abs(rightans(1:1000,1)-ansx);
+deltay=abs(rightans(1:1000,2)-ansy);
+deltaz=abs(rightans(1:1000,3)-ansz);
+deltat=abs(rightans(1:1000,4)-anst);
+figure(1)
+hist(deltax)
+figure(2)
+hist(deltay)
+figure(3)
+hist(deltaz)
+figure(4)
+hist(deltat)
+%{
+stax=stax([2,3,5,7,8,9,11,12,13,14,17,22,27]);
+stay=stay([2,3,5,7,8,9,11,12,13,14,17,22,27]);
+tomin=[47,48,47,47,47,47,47,47,47,47,47,47,47,47,47,47,47,48,47,48,47,...
+    47,47,47,47,47];
+tosec=[39.7,5.4,34.9,58.1,28.4,45.9,31.5,50.9,11.8,16.9,10.1,14.2,...
+    20.1,32.1,32.7,53,41.2,6.8,48,18.4,29.5,47,24.2,38.3,33.1,53.3];
+to=tomin.*60+tosec;
+tozero=to(1);
+to=to-to(1);
+[x,y,z,t]=deal(111.199*(40-stalat(1))*cos((120+stalng(1))/2),111.199*(40-stalat(1)),...
+    15,60*47-tozero);
+maxiter=200;
+for i=1:maxiter
+    [newx,newy,newz,newt]=giegersolve(x,y,z,t,to,stax,stay);
+    if max(abs([newx,newy,newz,newt]-[x,y,z,t]))<0.1 
+        break
+    end
+    [x,y,z,t]=deal(newx,newy,newz,newt);
+end
+la=y/111.199+stalat(1)
+lng=x/(111.199*cos((la+40)/2))+stalng(1)
+z
+t+tozero
+num=length(to)/2;
+r=convert2r(x,y,stax,stay);
+for i=1:num
+    [te(2*i-1),te(2*i)]=simptime(r(i),z);
+end
+te=te+t;
+deltar=to-te
+dx=5;
+dy=5;
+drx=convert2r(x+dx,y,stax,stay)-convert2r(x,y,stax,stay);
+dry=convert2r(x,y+dy,stax,stay)-convert2r(x,y,stax,stay);
+r=convert2r(x,y,stax,stay);
+for i=1:10
+    A=giegersolve(x,y,z,t,to,stax,stay);
+end
+%}
